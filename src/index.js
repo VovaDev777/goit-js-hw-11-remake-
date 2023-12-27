@@ -1,4 +1,5 @@
 import axios from "axios";
+import Notiflix from "notiflix";
 
 
 const URL = 'https://pixabay.com/api/';
@@ -6,19 +7,30 @@ const API_KEY = '40768794-c5228623910588c08b9f5e45d';
 const number_of_page = 40;
 let pageCount = 1;
 
-const axios = require('axios');
+// const axios = require('axios');
 
 
 const userList = document.querySelector('.gallery');
 const search_button = document.querySelector('.search-btn');
 const inputValue = document.querySelector('.input-in-from');
-const loadBtn = document.querySelector('.load-more')
+const loadBtn = document.querySelector('.load-more');
 
   function fetchInfo() {
     return axios.get(`${URL}?key=${API_KEY}&per_page=${number_of_page}&page=${pageCount}&q=${inputValue.value}`)
-    .then(response => response.data.hits) 
+    .then(response => response.data) 
     .catch(error => console.log(error));
   }
+
+
+
+  // async function fetchInfo() {
+  //   const response = await axios.get(`${URL}?key=${API_KEY}&per_page=${number_of_page}&page=${pageCount}&q=${inputValue.value}`);
+  //   return response.data
+  //   // .then(response => response.data) 
+  //   // .catch(error => console.log(error));
+  // }
+
+  // console.log(fetchInfo());
 
 
   function renderMarkup(data) {
@@ -55,16 +67,38 @@ const loadBtn = document.querySelector('.load-more')
     userList.innerHTML = '';
     evt.preventDefault();
     fetchInfo()
-    .then((info) => renderMarkup(info))
-    .catch((error) => console.log(error))
+    .then((info) => {
+      renderMarkup(info.hits)
+      console.log(info)
+      if (info.totalHits < 40 && info.totalHits > 0) {
+        loadBtn.classList.add('hidden');
+        Notiflix.Notify.success(`Hooray! We found ${info.totalHits} images.`);
+      } else if (info.totalHits > 1) {
+        Notiflix.Notify.success(`Hooray! We found ${info.totalHits} images.`);
+      } else if (info.totalHits === 0){
+        loadBtn.classList.add('hidden');
+        Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+      }
+      
+    })
+    .catch((error) => {
+      console.log(error);
+    })
   });
 
-  // fetchInfo().then(data => console.log(data));
 
   loadBtn.addEventListener('click', (evt) => {
     evt.preventDefault();
     pageCount += 1;
     fetchInfo()
-    .then((info) => renderMarkup(info))
+    .then((info) => {
+      renderMarkup(info.hits)
+      if (info.page === info.totalPage) {
+        loadBtn.classList.add('hidden');
+        Notiflix.Notify.failure('We are sorry, but you have reached the end of search results.');
+      }
+    })
     .catch((error) => console.log(error))
   });
+
+  
