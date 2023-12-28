@@ -22,7 +22,6 @@ const loadBtn = document.querySelector('.load-more');
   }
 
 
-
   // async function fetchInfo() {
   //   const response = await axios.get(`${URL}?key=${API_KEY}&per_page=${number_of_page}&page=${pageCount}&q=${inputValue.value}`);
   //   return response.data
@@ -63,19 +62,25 @@ const loadBtn = document.querySelector('.load-more');
   }
 
   search_button.addEventListener('click', (evt) => {
-    loadBtn.classList.remove('hidden');
+    loadBtn.classList.add('hidden');
     userList.innerHTML = '';
     evt.preventDefault();
-    fetchInfo()
+     fetchInfo()
     .then((info) => {
+      if (!inputValue.value) {
+        Notiflix.Notify.failure('Write the value');
+        return
+      }
       renderMarkup(info.hits)
-      console.log(info)
       if (info.totalHits < 40 && info.totalHits > 0) {
         loadBtn.classList.add('hidden');
         Notiflix.Notify.success(`Hooray! We found ${info.totalHits} images.`);
+
       } else if (info.totalHits > 1) {
         Notiflix.Notify.success(`Hooray! We found ${info.totalHits} images.`);
-      } else if (info.totalHits === 0){
+        loadBtn.classList.remove('hidden');
+
+      } else if (info.totalHits === 0) {
         loadBtn.classList.add('hidden');
         Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
       }
@@ -93,12 +98,11 @@ const loadBtn = document.querySelector('.load-more');
     fetchInfo()
     .then((info) => {
       renderMarkup(info.hits)
-      if (info.page === info.totalPage) {
+      const totalPage = Math.ceil(info.totalHits / 40);
+      if (pageCount === totalPage) {
         loadBtn.classList.add('hidden');
         Notiflix.Notify.failure('We are sorry, but you have reached the end of search results.');
       }
     })
     .catch((error) => console.log(error))
   });
-
-  
